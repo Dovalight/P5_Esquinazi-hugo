@@ -23,6 +23,6 @@ function getProduct(){
 }
 
 function hydrateProduct(){
-    document.getElementsById("_id").textContent = product.title
-    document.getElementById("_id").textContent = product.body
+    document.getElementsById("title").textContent = product.title
+    document.getElementById("description").textContent = product.body
 }
