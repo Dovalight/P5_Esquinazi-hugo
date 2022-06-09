@@ -1,3 +1,4 @@
+/*fonction qui permet de manipuler le panier*/ 
 class Basket {
     constructor() {
         let basket = localStorage.getItem("basket");
@@ -59,3 +60,6 @@ class Basket {
 
 
  /*ajouter un addEventListener sur bouton pour la fonction add*/
+
+
+ module.exports = new Basket()
