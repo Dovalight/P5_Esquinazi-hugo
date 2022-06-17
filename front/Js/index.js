@@ -2,7 +2,6 @@ main()
 
 async function main(){
     const products = await getProducts()
-    console.log (products)
     for (product of products){
         displayProducts(product)
     }
