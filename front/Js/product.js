@@ -6,7 +6,6 @@
 })()
 
 function getProductId(){
-    /*return new URL(location.href).searchParams.get("id")*/
     let url = new URL(window.location.href);
     let params = new URLSearchParams(url.search);
     if(params.has('id')){
@@ -73,18 +72,18 @@ function addToCart(product){
             return
         } ;
         
-        let contenu = {
-            product: product._id,
+        let contenue = {
+            id: product._id,
             qty: quantity,
             color: couleur,
         }
         const p = panier.find(function(x){
-            return x.product === contenu.product && x.color === contenu.color
+            return x.product === contenue.product && x.color === contenue.color
         });
         if (p){
-            p.qty = Number(p.qty) + Number(contenu.qty)
+            p.qty = Number(p.qty) + Number(contenue.qty)
         } else {
-            panier.push(contenu)
+            panier.push(contenue)
         }
         localStorage.setItem("panier", JSON.stringify(panier))
     });
