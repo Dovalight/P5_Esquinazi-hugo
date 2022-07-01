@@ -1,8 +1,10 @@
-//let someProduct = [];
-
 const product = JSON.parse(localStorage.getItem("panier"));
 const cart_items = document.getElementById("cart__items");
+const totalQuantity = document.getElementById("totalQuantity");
+const totalPrice = document.getElementById("totalPrice");
 
+
+//***********affichage du panier
 const inCart = (product, contenue) => {
   const article = document.createElement("article");
   article.setAttribute("class", "cart__item");
@@ -49,14 +51,7 @@ quantité.setAttribute("min","1");
 quantité.setAttribute("max","100");
 quantité.setAttribute("value",contenue.qty);
 quantité.addEventListener("change", function(event){
-  alert(event.target.value);
- let foundProduct = panier.find(p => p.id == product._id);
- if(foundProduct != undefined){
-  foundProduct.quantity++;
- } else {
-  product.quantity = 1;
-  panier.push(product);
- }
+  changeQuantityItem(event.target.value, article, product, contenue);
 });
 
 cart__item__content__settings__quantity.appendChild(quantité);
@@ -68,10 +63,9 @@ cart__item__content__settings__delete.setAttribute("class","cart__item__content_
 const deleteItem = document.createElement("p");
 deleteItem.setAttribute("class", "deleteItem");
 deleteItem.addEventListener("click", function(event){
-  product = product.filter(p => p.id != product._id); 
-  alert();
-  event.preventDefault();
-})
+  onClickDeleteItem(article, product, contenue);
+});
+
 deleteItem.textContent = "Supprimer";
 cart__item__content__settings__delete.appendChild(deleteItem);
 cart__item__content__settings.appendChild(cart__item__content__settings__delete);
@@ -81,64 +75,74 @@ cart__item__content.appendChild(cart__item__content__settings);
   article.appendChild(cart__item__content);
 
   cart_items.appendChild(article);
-
-
- getTotalProduct();
- //removeProduct();
-
- //localStorage.setItem("panier", JSON.stringify(panier));
 };
 
+//***********appel d'api + affichage des totaux des produits et prix
 const inCartBis = () => {
     if (product){
+      let sumQuantity = 0;
+      let sumPrice = 0;
       product.forEach(function(k) {
         fetch (`http://localhost:3000/api/products/${k.id}`).then( function (response) {
            return response.json() 
-        
         }).then( function(result){
           inCart(result, k)
+          sumQuantity = Number(sumQuantity) + Number(k.qty);
+          sumPrice = Number(sumPrice) + (Number(k.qty)) * Number(result.price);
+          totalQuantity.textContent = sumQuantity;
+          totalPrice.textContent = sumPrice;
         }).catch (function(error){
-        
+          console.log(error)
         }) 
-      });
-    }  
-    }
-
+    });
+  }  
+}
 inCartBis();
 
 
-const getTotalProduct = async (inCart, changeQuantity, removeProduct) => {
-    await inCart;
-    await changeQuantity;
-    await removeProduct;
-    let totalPrice = [];
-    let totalProduct = [];
-    let maxArray = JSON.parse(localStorage.getItem("panier")); 
-    let showQuantity = document.querySelectorAll(".itemQuantity");
-    maxArray.forEach((contenue, product) => {
-        totalPrice.push(product.price * contenue.qty)
-        totalProduct.push(contenue.qty)
-    });  
-    document
-    .getElementById("totalQuantity")
-    .textContent = `${eval(totalProduct.join("+"))}`; 
+//************change la quantité d'article par produit
+function changeQuantityItem(value, article, produit, contenue){
+   if (value < 1) {
+    onClickDeleteItem(article, produit, contenue);
+    return
+   } if(value > 100){
+    alert("indiquez une valeur entre 1 et 100.");
+    return
+   }
+  const index = product.findIndex((x) => x.color === contenue.color && x.id === contenue.id);
+  if (index > -1){
+    let findItem = product[index];
+    const oldQuantity = Number(findItem.qty);
+    const newQuantity = Number(value);
+    findItem.qty = newQuantity;
 
-    document
-    .getElementById("totalPrice")
-    .textContent = `${eval(totalPrice.join("+"))}`; 
-};
+    let sumQuantity = Number(totalQuantity.textContent) + Number(newQuantity) - Number(oldQuantity);
+    let sumPrice = Number(totalPrice.textContent) + (Number(newQuantity) * Number(produit.price)) - (Number(oldQuantity) * Number(produit.price));
+    totalQuantity.textContent = sumQuantity;
+    totalPrice.textContent = sumPrice;
 
-
-
-
-
-
-/**************************************** validation formulaire***********************************************/
+    localStorage.setItem("panier", JSON.stringify(product))  
+  };
+}
 
 
+//***********supprime les articles du panier dans le localStorage
+function onClickDeleteItem(article, produit, contenue){
+  const index = product.findIndex((x) => x.color === contenue.color && x.id === contenue.id);
+  if (index > -1){
+    product.splice(index, 1);
+    cart_items.removeChild(article);
+    let sumQuantity = Number(totalQuantity.textContent) - Number(contenue.qty);
+    let sumPrice = Number(totalPrice.textContent) - (Number(contenue.qty) * Number(produit.price));
+    totalQuantity.textContent = sumQuantity;
+    totalPrice.textContent = sumPrice;
+
+    localStorage.setItem("panier", JSON.stringify(product))
+  }
+}
 
 
-
+//************* validation formulaire
 
 
 const firstName = document.getElementById("firstName")
@@ -148,7 +152,6 @@ const city = document.getElementById("city")
 const email = document.getElementById("email")
 
 let valueFirstName , valueLastName , valueAddress , valueCity , valueEmail;
-
 
 firstName.addEventListener("input", function(e){
   valueFirstName;
@@ -167,8 +170,10 @@ firstName.addEventListener("input", function(e){
     e.target.value.length < 25){
       firstNameErrorMsg.innerHTML = "Le prénom ne contient pas de caractères spéciaux";
       valueFirstName = null;
+      
   }
 });
+
 
 lastName.addEventListener("input", function(e){
   valueLastName;
@@ -196,13 +201,13 @@ address.addEventListener("input", function(e){
       addressErrorMsg.innerHTML = "";
       valueAddress = null;
   } else if (e.target.value.length < 3 || e.target.value.length > 35 ){
-      addressErrorMsg.innerHTML = "L'addresse' doit contenir entre 3 et 35 lettres";
+      addressErrorMsg.innerHTML = "L'addresse' doit contenir entre 3 et 35 caractères";
       valueAddress = null
   } if(e.target.value.match(/^[0-9]{1,3} [a-z A-Z]{5,50}$/)){
       addressErrorMsg.innerHTML = "";
       valueAddress = e.target.value;
   } if(
-    !e.target.value.match(/^[0-9]{1,3} [a-z A-Z]{5,50}$/) && 
+    !e.target.value.match(/^[0-9]{1,3} [a-z A-Z]{3,50}$/) && 
     e.target.value.length > 3 && 
     e.target.value.length < 35){
       addressErrorMsg.innerHTML = "L'adresse commence par des chiffres";
@@ -243,34 +248,51 @@ email.addEventListener("input", (e) => {
     }
 });
 
-/* mettre location.href="confirmation.html" sur id "order" du formulaire */
 
+//*************envoie sur la page de confirmation
+function onCommande(contenue){
+  document
+  .getElementById("order")
+  
+  .addEventListener("click",(e) =>{
+    e.preventDefault();
+    
+    if(valueFirstName != null  && valueLastName != null && valueAddress != null && valueCity != null && valueEmail != null)
+  {
+    let contact = {
+      firstName: valueFirstName,
+      lastName: valueLastName, 
+      address: valueAddress, 
+      city: valueCity, 
+      email: valueEmail,
+    }
+    let products = [];
+    for(let i = 0; i < product.length; i++ )
+    {
+      products.push(product[i].id)
+    }
+    let parent = {
+   method : "POST", 
+   body : JSON.stringify({contact, products}),
+   headers : {"Accept": "application/json", "Content-type": "application/json"}   
+    }
+    fetch("http://localhost:3000/api/products/order", parent)
+    .then((response) => {
+      return response.json()
+    })
+    .then((result) =>{
+      localStorage.clear();
+      location.href = "confirmation.html?id=" + result.orderId;
 
-
-/*const removeProduct = async (inCart) => {
-  await inCart;
-  let corbeilles = document.querySelectorAll(".deleteItem");
-  corbeilles.forEach((corbeille) => 
-  {corbeille.addEventListener("click", () => { 
-      let totalRemove = product.length;
-      console.log(totalRemove);
-      
-      if(totalRemove == 1) {
-          return (
-          localStorage.removeItem("panier"),
-          (location.href = "cart.html")
-          );
-      } else {
-          someProduct = product.filter(k => {
-              if(corbeille.dataset.if != k.id || corbeille.dataset.color != k.color){
-              return true
-              }       
-          });
-          localStorage.setItem("panier", JSON.stringify(someProduct));
-          getTotalProduct();
-          (location.href = "cart.html")
-      }
-      });
+    })
+    .catch((error) => {
+      console.log(error);
+    })
+  } else{
+    alert ("formulaire invalide");
+  }
   });
-  return;
-};*/
+  
+}
+
+onCommande();

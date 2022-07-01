@@ -5,6 +5,8 @@
     hydrateProduct(product)
 })()
 
+
+//*************retour d'url avec l'id du produit dedans
 function getProductId(){
     let url = new URL(window.location.href);
     let params = new URLSearchParams(url.search);
@@ -15,7 +17,7 @@ function getProductId(){
 }
 
 
-
+//*************appel d'api
 function getProduct(productId){
     return fetch("http://localhost:3000/api/products/" + productId)
     .then(function(httpBodyResponse){
@@ -29,6 +31,8 @@ function getProduct(productId){
     })
 }
 
+
+//*************affichage du produit
 function hydrateProduct(product){
     const image = document.createElement("img")
     image.setAttribute("src", product.imageUrl)
@@ -52,6 +56,9 @@ function hydrateProduct(product){
         addToCart(product)
 }
 
+
+/*fonction d'ajout au panier dans le localStorage
+avec variable couleur + nombres d'article*/
 function addToCart(product){
     document
     .getElementById("addToCart")
@@ -68,7 +75,7 @@ function addToCart(product){
             return
         };
         if (Number(quantity) < 1 ||  Number(quantity) > 100 ) {
-            alert("definissez la quantité.");
+            alert("mettez la quantité entre 1 et 100");
             return
         } ;
         
@@ -86,5 +93,6 @@ function addToCart(product){
             panier.push(contenue)
         }
         localStorage.setItem("panier", JSON.stringify(panier))
+        alert("le produit a été ajouté au panier.")
     });
 }

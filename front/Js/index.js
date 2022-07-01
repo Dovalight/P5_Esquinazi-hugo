@@ -7,6 +7,7 @@ async function main(){
     }
 }
 
+//********appel d'api
 function getProducts(){
     return fetch("http://localhost:3000/api/products")
     .then(function(httpBodyResponse){
@@ -20,6 +21,7 @@ function getProducts(){
     })
 }
 
+//**********affichage des produits de l'api
 function displayProducts(product){
     const templateElt = document.getElementById("items")
     templateElt.innerHTML += ` <a href="front/html/product.html?id=${product._id}"> 
